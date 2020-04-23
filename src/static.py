@@ -1,0 +1,1 @@
+MUSIC_URL = "https://soundcloud.com/ashleysorigin/having-fun"
