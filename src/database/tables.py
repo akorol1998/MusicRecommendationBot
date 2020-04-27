@@ -5,8 +5,8 @@ metadata = sa.MetaData()
 User = sa.Table(
     'user', metadata,
     sa.Column('id', sa.BIGINT, nullable=False, primary_key=True),
-    sa.Column('uid', sa.BIGINT, nullable=False, unique=True),
-    sa.Column('nickname', sa.Unicode(128), nullable=False),
+    sa.Column('uid', sa.BIGINT(), nullable=False, unique=True),
+    sa.Column('username', sa.Unicode(128), nullable=False),
     sa.Column('last_search', sa.DateTime, nullable=False),
     sa.Column('liked_tracks', sa.Integer, nullable=False),
     sa.Column('liked_artists', sa.Integer, nullable=False),
@@ -16,8 +16,8 @@ User = sa.Table(
 Artist = sa.Table(
     'artist', metadata,
     sa.Column('id', sa.BIGINT(), nullable=False, primary_key=True),
+	sa.Column('uid', sa.Unicode(128), nullable=False, unique=True),
     sa.Column('name', sa.Unicode(128), nullable=False, unique=True),
-    sa.Column('image', sa.BLOB(), nullable=False),
     sa.Column('followers', sa.Integer(), nullable=False),
     sa.Column('popularity', sa.Integer(), nullable=False),
 )
@@ -26,6 +26,7 @@ Artist = sa.Table(
 Album = sa.Table(
     'album', metadata,
     sa.Column('id', sa.BIGINT(), nullable=False, primary_key=True),
+	sa.Column('uid', sa.Unicode(128), nullable=False, unique=True),
     sa.Column('name', sa.Unicode(length=256), nullable=False, unique=True),
     sa.Column('type', sa.String(32), nullable=False),
     sa.Column('release', sa.DateTime(), nullable=False),
@@ -36,9 +37,9 @@ Album = sa.Table(
 Track = sa.Table(
     'track', metadata,
     sa.Column('id', sa.BIGINT(), nullable=False, primary_key=True),
+	sa.Column('uid', sa.Unicode(128), nullable=False, unique=True),
     sa.Column('name', sa.Unicode(length=128), nullable=False, unique=True),
-    sa.Column('image', sa.BLOB(), nullable=False),
-    sa.Column('duration', sa.TIMESTAMP(), nullable=False),
+    sa.Column('duration', sa.BIGINT(), nullable=False),
     sa.Column('explicit', sa.BOOLEAN(), nullable=False),
     sa.Column('album_id', sa.BIGINT(), sa.ForeignKey('album.id'), nullable=False),
 )
@@ -54,7 +55,7 @@ Video = sa.Table(
 Genre = sa.Table(
     'genre', metadata,
     sa.Column('id', sa.BIGINT(), nullable=False, primary_key=True),
-    sa.Column('name', sa.String(length=128), nullable=False, primary_key=True),
+    sa.Column('name', sa.String(length=128), nullable=False, unique=True),
 )
 
 
