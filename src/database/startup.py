@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from sqlalchemy.engine.base import Connection
 from sqlalchemy.engine.base import Engine
 from src.database.tables import metadata
-from src.config import DB_URL, DB
+from src.config import DB_URL
 
 
 
@@ -11,7 +11,7 @@ def connection():
     engine: Engine = sa.create_engine(DB_URL)
     conn: Connection = engine.connect()
     
-    _drop_tables()
+    # _drop_tables()
     _create_tables()
     return conn
 

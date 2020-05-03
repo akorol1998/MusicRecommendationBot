@@ -1,9 +1,7 @@
 from __future__ import annotations
 from telebot.types import Message
-from src.spotify.queries import query_search, query_recommend
+from src.spotify.queries import query_search, query_recommend, query_artist_by_id
 from src.config import SpotifyConfig
-
-# from src.telegram.bl import send_text_message
 
 
 def recommend_song(query: str):
@@ -54,4 +52,16 @@ def process_song_search(raw_query: str):
     return result_query
 
 
-# 403820486
+def get_artist_queries(artists):
+    artist_queries = []
+    for obj in artists:
+        artist = query_artist_by_id(obj['id'])
+        artist_query = {
+            'uid': artist['id'],
+            'name': artist['name'],
+            'followers': artist['followers']['total'],
+            'popularity': artist['popularity']
+        }
+        artist_queries.append(artist_query)
+    return artist_queries
+

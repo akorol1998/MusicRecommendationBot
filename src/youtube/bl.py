@@ -20,21 +20,21 @@ class YouTubeAPI:
             q_track = track['name']
             q_artist = artist['name']
             yield {
-				'link':f"{q_track} {q_artist} - http://localhost",
-				'track_uid': track['id']
-				}
+                'link':f"{q_track} {q_artist} - http://localhost",
+                'track_uid': track['id']
+                }
 
-            # search_response = YouTubeAPI.youtube_search(q_track=q_track, q_artist=q_artist)
-
-            # for idx, search_result in enumerate(search_response['items']):
-            #     if search_result['id']['kind'] == 'youtube#video':
-            #         video_id = search_result['id']['videoId']
-            #         yield YouTubeUtils.VIDEO_BASE_URL + video_id
+    @staticmethod
+    def extract_url(search_response):
+        for idx, search_result in enumerate(search_response['items']):
+            if search_result['id']['kind'] == 'youtube#video':
+                video_id = search_result['id']['videoId']
+                return YouTubeUtils.VIDEO_BASE_URL + video_id
 
     @staticmethod
     def youtube_search(*args, **kwargs) -> dict:
         search_response = YouTubeAPI.youtube.search().list(
-            q=f'{kwargs["q_artist"]} {kwargs["q_track"]}',
+            q=f'{kwargs["artist"]} {kwargs["track"]}',
             part=f'{YouTubeUtils.PART_ID},{YouTubeUtils.PART_SNIPPET}',
             maxResults=YouTubeUtils.MAX_RESULTS,
         ).execute()

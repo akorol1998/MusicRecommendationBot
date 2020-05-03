@@ -1,0 +1,71 @@
+Exception in thread handle_inserts:
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 917, in _bootstrap_inner
+    self.run()
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 865, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/src/telegram/lib.py", line 129, in handle_insert
+    call_insertions(zip(artist_queries, album_queries, track_queries))
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/src/telegram/lib.py", line 90, in call_insertions
+    artist_track_insert(id_pack)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/src/database/bl.py", line 41, in artist_track_insert
+    insert(ArtistTrack, query)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/src/database/queries.py", line 19, in insert
+    res = conn.execute(query)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/base.py", line 984, in execute
+    return meth(self, multiparams, params)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/sql/elements.py", line 293, in _execute_on_connection
+    return connection._execute_clauseelement(self, multiparams, params)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/base.py", line 1103, in _execute_clauseelement
+    distilled_params,
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/base.py", line 1288, in _execute_context
+    e, statement, parameters, cursor, context
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/base.py", line 1485, in _handle_dbapi_exception
+    util.raise_(exc_info[1], with_traceback=exc_info[2])
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/util/compat.py", line 178, in raise_
+    raise exception
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/base.py", line 1248, in _execute_context
+    cursor, statement, parameters, context
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/default.py", line 590, in do_execute
+    cursor.execute(statement, parameters)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/mysql/connector/cursor_cext.py", line 248, in execute
+    prepared = self._cnx.prepare_for_mysql(params)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/mysql/connector/connection_cext.py", line 630, in prepare_for_mysql
+    result[key] = self._cmysql.convert_to_mysql(value)[0]
+_mysql_connector.MySQLInterfaceError: Python type RowProxy cannot be converted
+
+Exception in thread handle_inserts:
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 917, in _bootstrap_inner
+    self.run()
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 865, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/src/telegram/lib.py", line 129, in handle_insert
+    call_insertions(zip(artist_queries, album_queries, track_queries))
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/src/telegram/lib.py", line 90, in call_insertions
+    artist_track_insert(id_pack)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/src/database/bl.py", line 41, in artist_track_insert
+    insert(ArtistTrack, query)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/src/database/queries.py", line 19, in insert
+    res = conn.execute(query)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/base.py", line 984, in execute
+    return meth(self, multiparams, params)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/sql/elements.py", line 293, in _execute_on_connection
+    return connection._execute_clauseelement(self, multiparams, params)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/base.py", line 1103, in _execute_clauseelement
+    distilled_params,
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/base.py", line 1288, in _execute_context
+    e, statement, parameters, cursor, context
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/base.py", line 1485, in _handle_dbapi_exception
+    util.raise_(exc_info[1], with_traceback=exc_info[2])
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/util/compat.py", line 178, in raise_
+    raise exception
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/base.py", line 1248, in _execute_context
+    cursor, statement, parameters, context
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/sqlalchemy/engine/default.py", line 590, in do_execute
+    cursor.execute(statement, parameters)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/mysql/connector/cursor_cext.py", line 248, in execute
+    prepared = self._cnx.prepare_for_mysql(params)
+  File "/Users/akorol/Desktop/University/2020/Course/Telegram_bot/env/lib/python3.7/site-packages/mysql/connector/connection_cext.py", line 630, in prepare_for_mysql
+    result[key] = self._cmysql.convert_to_mysql(value)[0]
+_mysql_connector.MySQLInterfaceError: Python type RowProxy cannot be converted

@@ -14,19 +14,26 @@ def execute(query):
 
 
 def insert(table: sa.Table, values):
-    query = table.insert().values(values)
-    # print(query)
     try:
-        res = conn.execute(query)
+        res = execute(table.insert().values(values))
     finally:
         pass
     return res
+
+def update_by_id(table: sa.Table, values: list, id: int):
+	query = table.update().values(values).where(table.c.id == id)
+	print(query)
+	return execute(query)
         
+
+def select_with_id(table: sa.Table, id):
+    query = table.select().where(id == table.c.id)
+    return fetch_one(execute(query))
 
 
 def select_by_uid(table: sa.Table, uid: Any):
     query = table.select().where(table.c.uid == uid)
-    return fetch_one(conn.execute(query))
+    return fetch_one(execute(query))
 
 
 # Request to local DB

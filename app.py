@@ -12,22 +12,16 @@ from src.static import MUSIC_URL
 from src.config import BotMarkUp, BotCommands
 from src.config import BOT_SECURITY, DB_URL
 from src.spotify.queries import query_search, query_recommend
-from src.telegram.lib import create_markup, send_text_message
+from src.telegram.lib import create_markup
 from src.telegram.bl import (
     handle_song_recommendation,
     handle_artist_recommendation,
-    handle_start_command,
-    handle_song_search
+    handle_song_search,
+    handle_commands
 )
 
 
-# COMMANDS: 1. Get a song, 2. Recommend by track, 3. Recommends by Artist,
-# TODO 1) PRIORITY COMMANDS to add: 4. Get favourite Songs, 5.Get favourite artists, optional (6.Get My genres)
-# TODO 4) Research google youtube API. Integrate it ti search the song`s tracks.
-# In case of recommendation by artist, search for the most popular track of that artist and use it to request the video.
-# TODO handle process of adding data to the database, should be happening all the time until certain amount of rows will be filled.
-# after what data will be added only on condition of being marked as liked one.
-# TODO Request user`s friend list to display friends latest recommendation requests ).
+# TODO Request user`s friend list to display friends latest recommendation requests).
 # TODO (Optionally) Add aditional table for tracks features.
 # TODO (Optional) to solve problems of updated nicknames create class of Chat.
 # Encapsulate bot objects and date field to compare the date of current message  and update user info if the one has changed
@@ -37,42 +31,36 @@ from src.telegram.bl import (
 
 @bot.message_handler(commands=['help'])
 def command_help(message: Message):
-    text = f"Here are the available commands:\n"\
-        "/help - Help menu\n"\
-        "/get <song> <artist> - Search for song\n"\
-        "/artist <artist> - get related artists\n"\
-        "/song <song> <artist> - get related songs\n"\
-        "/stats - Statistic menu\n"\
-        "/commands - 'Basic menu'\n"
-    send_text_message(text, message) 
+    handle_commands(message)
 
 
 @bot.message_handler(commands=['start'])
 def command_get(message: Message):
-    handle_start_command(message)
+    handle_commands(message)
 
 
 @bot.message_handler(commands=['get'])
 def command_get(message: Message):
-    handle_song_search(message=message)
+    handle_commands(message)
 
 
 @bot.message_handler(commands=['artist'])
 def command_artist(message: Message):
-    handle_artist_recommendation(message)
+    handle_commands(message)
 
 
 @bot.message_handler(commands=['song'])
 def command_song(message: Message):
-    handle_song_recommendation(message)
+    handle_commands(message)
+    
 
 
-@bot.message_handler(commands=['commands'])
-def command_commands(message: Message):
-    chat_id = message.chat.id
-    markup = create_markup()
-    text = "Use this commands to communicate with bot"
-    bot.send_message(chat_id, text=text, reply_markup=markup)
+# @bot.message_handler(commands=['commands'])
+# def command_commands(message: Message):
+#     chat_id = message.chat.id
+#     markup = create_markup()
+#     text = "Use this commands to communicate with bot"
+#     bot.send_message(chat_id, text=text, reply_markup=markup)
 
 
 @bot.message_handler(content_types=['document', 'text'])
@@ -101,7 +89,6 @@ def main():
         bot.polling(none_stop=True)
     except ReadTimeout as e:
         print(e)
-        
 
 
 if __name__ == "__main__":

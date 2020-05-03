@@ -1,17 +1,22 @@
 from src.telegram import bot
+import telebot
+from uuid import uuid1
+from concurrent.futures.thread import ThreadPoolExecutor
+from functools import partial
 import json
-import itertools
 
-from typing import List
-from datetime import datetime
-from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
-from src.lib import format_query
+from src.lib import format_query, deserialize
 
-from src.database.tables import User, Album, Track
-from src.database.queries import insert, select_by_uid
+from src.database.tables import Track, Artist
+from src.database.bl import insert_liked_tracks, insert_user, select_by_id
 
-from src.telegram.lib import send_text_message, search_song, search_artist, handle_insert
+from src.telegram.lib import (
+    search_song,
+    search_artist,
+    handle_insert,
+    aggregate_response)
 
 from src.spotify.bl import (
     recommend_song,
@@ -20,43 +25,63 @@ from src.spotify.bl import (
 
 from src.youtube.bl import YouTubeAPI
 
-from src.config import TelegramConfig
+from src.config import TelegramConfig, RESPONSE_LIFETIME
+from src.telegram.services import bl as redis
+
+def handle_commands(message: Message):
+    with ThreadPoolExecutor(thread_name_prefix='Check user') as executor:
+        t1 = executor.submit(partial(insert_user, message))
+        command = message.text.split()[0]
+        if command == '/get':
+            handle_song_search(message=message)
+        elif command == '/song':
+            handle_song_recommendation(message)
+        elif command == '/artist':
+            handle_artist_recommendation(message)
+        elif command == '/help':
+            handle_help_command(message)
+        t1.result()
 
 
-def handle_start_command(message: Message):
-    res = select_by_uid(User, message.chat.id)
-    if not res:
-        uid = message.chat.id
-        username = message.chat.username
-        current_time = datetime.now()
-        insert_query = {
-            'uid': uid,
-            'username': username,
-            'last_search': current_time,
-            'liked_tracks': 0,
-            'liked_artists': 0,
-            'liked_albums': 0,
-        }
-        insert(User, insert_query)
-    else:
-        send_text_message(f"Wellcome back {message.chat.first_name}", message)
+def send_video(key: str, call: CallbackQuery):
+    payload = redis.get(key)
+    if not payload:
+        print(f"Timeout for video payload - {key}")
+        return 
+    data = deserialize(payload)
+    track = select_by_id(Track, data['track_id'])
+    # TODO start adding to the video table in another tread
+    artist = select_by_id(Artist, data['artist_id'])
+    search_response = YouTubeAPI.youtube_search(artist=artist['name'], track=track['name'])
+    url = YouTubeAPI.extract_url(search_response)
+    send_text_message(url, call.message)
 
+
+# Message_Id editMessage
+@bot.callback_query_handler(func=lambda arg: True)
+def callback_handler(call):
+    data = call.data.split()
+    if data[0] == 'like':
+        insert_liked_tracks(data[1], call)
+    elif data[0] == 'video':
+        send_video(data[1], call)
+        
 
 def send_songs(response, message: Message):
+    def hash_response(context: dict, uuid):
+        payload = json.dumps(context)
+        redis.set(uuid, payload, RESPONSE_LIFETIME)
+
     for idx, context in enumerate(response):
-        send_text_message(context['link'], message)
+        markup = telebot.types.InlineKeyboardMarkup(row_width=1)
+        uuid = uuid1()
+        like_btn = InlineKeyboardButton('Like', callback_data=f"like {str(uuid)}")
+        video_btn = InlineKeyboardButton('Video', callback_data=f"video {str(uuid)}")
+        markup.row(like_btn, video_btn)
+        hash_response(context, str(uuid))
+        send_text_message(context['text'], message, markup=markup)
         if idx + 1 == TelegramConfig.OUTPUT_LIMIT:
             break
-   
-# TODO can do even without callback_data
-# just add to Redis data with a key = {username + uid} when there is request for recommendation
-# After load more is pressed load from Redis information about tracks and artists
-# TODO Leave it to be done later, concentrate on DataBase.
-# BAD Solution but can not serialize generator ((
-#         payload = json.dumps(context)
-#         markup = InlineKeyboardMarkup()
-#         button = InlineKeyboardButton(text='Load more', callback_data=payload)
-#         markup.add(button)
 
 # TODO Need asynchronous calls.... too slow
 def handle_artist_recommendation(message: Message):
@@ -64,13 +89,17 @@ def handle_artist_recommendation(message: Message):
         search_response = search_artist(message)
         recommended = recommend_artist(search_response, message)
         tracks, artists = format_query(recommended, recommended=True)
-        handle_insert(tracks, artists, message)
-        response = YouTubeAPI.youtube_search_requests(tracks, artists)
+        with ThreadPoolExecutor(max_workers=2, thread_name_prefix='handle_inserts') as executor:
+            t1 = executor.submit(partial(handle_insert, tracks, artists, message))
+            insert_ids = t1.result()
+        response = aggregate_response(insert_ids, tracks, artists)
+        # response = YouTubeAPI.youtube_search_requests(tracks, artists)
         send_songs(response, message)
     except IndexError as e:
         send_text_message("Oops, no corresponding result", message)
     except ValueError as e:
         send_text_message('Oops, you are missing additional argument', message)
+
 
 # TODO Need asynchronous calls.... too slow
 def handle_song_recommendation(message: Message):
@@ -78,24 +107,47 @@ def handle_song_recommendation(message: Message):
         result_query = search_song(message)
         recommended = recommend_song(result_query)
         tracks, artists = format_query(recommended, recommended=True)
-        handle_insert(tracks, artists, message)
-        response = YouTubeAPI.youtube_search_requests(tracks, artists)
+        with ThreadPoolExecutor(max_workers=2, thread_name_prefix='handle_inserts') as executor:
+            t1 = executor.submit(partial(handle_insert, tracks, artists, message))
+            insert_ids = t1.result()
+        response = aggregate_response(insert_ids, tracks, artists)
+        # response = YouTubeAPI.youtube_search_requests(tracks, artists)
         send_songs(response, message)
     except IndexError as e:
         send_text_message("Oops, no corresponding result", message)
     except ValueError as e:
         send_text_message('Oops, you are missing additional argument', message)
 
+
 # TODO Need asynchronous calls.... too slow
 def handle_song_search(message: Message):
     try:
         result_query = search_song(message)
         tracks, artists = format_query(result_query, song_search=True)
-        handle_insert(tracks, artists, message)
-        response = YouTubeAPI.youtube_search_requests(tracks, artists)
+        with ThreadPoolExecutor(max_workers=2, thread_name_prefix='handle_inserts') as executor:
+            t1 = executor.submit(partial(handle_insert, tracks, artists, message))
+            insert_ids = t1.result()
+        response = aggregate_response(insert_ids, tracks, artists)
+        # response = YouTubeAPI.youtube_search_requests(tracks, artists)
         send_songs(response, message)
     except IndexError as e:
         send_text_message("Oops, no corresponding result", message)
     except ValueError as e:
         send_text_message('Oops, you are missing additional argument', message)
+
+
+def handle_help_command(message):
+    text = f"Here are the available commands:\n"\
+        "/help - Help menu\n"\
+        "/get <song> <artist> - Search for song\n"\
+        "/artist <artist> - get related artists\n"\
+        "/song <song> <artist> - get related songs\n"\
+        "/stats - Statistic menu\n"\
+        "/commands - 'Basic menu'\n"
+    send_text_message(text, message)
+
+
+def send_text_message(text: str, message: Message, markup=None):
+    chat_id = message.chat.id
+    bot.send_message(chat_id, text, reply_markup=markup)
 

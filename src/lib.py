@@ -1,3 +1,5 @@
+import json
+
 def get_query(text: str):
     args = text.split()
     if text.startswith('/'):
@@ -23,6 +25,8 @@ def format_query(
             tracks.append(obj)
             artists.append(obj['artists'][0])
     return tracks, artists
-        # for idx, obj in enumerate(response['tracks']):
-        #     text = obj['artists'][0]['name']
-        #     if origin_id != obj['artists'][0]['id']:
+
+
+def deserialize(payload):
+        return json.loads(payload)
+
